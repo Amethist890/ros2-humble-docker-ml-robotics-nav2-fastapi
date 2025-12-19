@@ -1,0 +1,114 @@
+version: '3.8'
+
+# Nav2 Navigation Stack - Containerized Deployment
+# Requires: map files in ./maps, params in ./params
+
+services:
+  # Map server - serves static map
+  map_server:
+    image: osrf/ros:humble-desktop
+    container_name: nav2_map_server
+    network_mode: host
+    volumes:
+      - ./maps:/maps:ro
+      - ./params:/params:ro
+    command: >
+      bash -c "source /opt/ros/humble/setup.bash &&
+               ros2 run nav2_map_server map_server --ros-args 
+               -p yaml_filename:=/maps/map.yaml 
+               -p use_sim_time:=false"
+    restart: unless-stopped
+
+  # AMCL - localization
+  amcl:
+    image: osrf/ros:humble-desktop
+    container_name: nav2_amcl
+    depends_on:
+      - map_server
+    network_mode: host
+    volumes:
+      - ./params:/params:ro
+    command: >
+      bash -c "source /opt/ros/humble/setup.bash &&
+               ros2 run nav2_amcl amcl --ros-args 
+               --params-file /params/nav2_params.yaml"
+    restart: unless-stopped
+
+  # Controller server - trajectory tracking
+  controller:
+    image: osrf/ros:humble-desktop
+    container_name: nav2_controller
+    depends_on:
+      - amcl
+    network_mode: host
+    volumes:
+      - ./params:/params:ro
+    command: >
+      bash -c "source /opt/ros/humble/setup.bash &&
+               ros2 run nav2_controller controller_server --ros-args 
+               --params-file /params/nav2_params.yaml"
+    restart: unless-stopped
+
+  # Planner server - path planning
+  planner:
+    image: osrf/ros:humble-desktop
+    container_name: nav2_planner
+    depends_on:
+      - controller
+    network_mode: host
+    volumes:
+      - ./params:/params:ro
+    command: >
+      bash -c "source /opt/ros/humble/setup.bash &&
+               ros2 run nav2_planner planner_server --ros-args 
+               --params-file /params/nav2_params.yaml"
+    restart: unless-stopped
+
+  # BT Navigator - behavior tree navigation
+  bt_navigator:
+    image: osrf/ros:humble-desktop
+    container_name: nav2_bt_navigator
+    depends_on:
+      - planner
+    network_mode: host
+    volumes:
+      - ./params:/params:ro
+    command: >
+      bash -c "source /opt/ros/humble/setup.bash &&
+               ros2 run nav2_bt_navigator bt_navigator --ros-args 
+               --params-file /params/nav2_params.yaml"
+    restart: unless-stopped
+
+  # Lifecycle manager - manages node states
+  lifecycle_manager:
+    image: osrf/ros:humble-desktop
+    container_name: nav2_lifecycle_manager
+    depends_on:
+      - bt_navigator
+    network_mode: host
+    volumes:
+      - ./params:/params:ro
+    command: >
+      bash -c "source /opt/ros/humble/setup.bash &&
+               ros2 run nav2_lifecycle_manager lifecycle_manager --ros-args 
+               --params-file /params/nav2_params.yaml
+               -p node_names:=[map_server,amcl,controller_server,planner_server,bt_navigator]"
+    restart: unless-stopped
+
+  # RViz2 for visualization
+  rviz:
+    image: osrf/ros:humble-desktop
+    container_name: nav2_rviz
+    network_mode: host
+    environment:
+      - DISPLAY=host.docker.internal:0.0
+      - QT_X11_NO_MITSHM=1
+    volumes:
+      - ./rviz:/rviz:ro
+    command: >
+      bash -c "source /opt/ros/humble/setup.bash &&
+               rviz2 -d /rviz/nav2_default_view.rviz"
+    profiles:
+      - gui
+    restart: unless-stopped
+

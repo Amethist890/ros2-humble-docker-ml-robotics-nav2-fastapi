@@ -1,0 +1,41 @@
+{
+  "name": "ROS 2 Humble GPU Dev",
+  "build": {
+    "dockerfile": "../docker/Dockerfile.gpu",
+    "context": ".."
+  },
+  "runArgs": [
+    "--network=host",
+    "--gpus=all",
+    "-e",
+    "DISPLAY=host.docker.internal:0.0",
+    "-e",
+    "QT_X11_NO_MITSHM=1",
+    "--privileged"
+  ],
+  "workspaceFolder": "/home/dev/ros_ws",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/home/dev/ros_ws,type=bind",
+  "mounts": [
+    "source=${localWorkspaceFolder}/src,target=/home/dev/ros_ws/src,type=bind"
+  ],
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-iot.vscode-ros",
+        "ms-python.python",
+        "ms-vscode.cpptools",
+        "twxs.cmake",
+        "ms-vscode.cmake-tools",
+        "oderwat.indent-rainbow",
+        "streetsidesoftware.code-spell-checker"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/bin/python3",
+        "C_Cpp.default.compileCommands": "${workspaceFolder}/build/compile_commands.json",
+        "ros.distro": "humble"
+      }
+    }
+  },
+  "remoteUser": "dev",
+  "postCreateCommand": "sudo chown -R dev:dev /home/dev/ros_ws && cd /home/dev/ros_ws && source /opt/ros/humble/setup.bash"
+}

@@ -1,0 +1,162 @@
+version: '3.8'
+
+# ROS 2 Humble Multi-Node Robotics Simulation Stack
+# Usage: docker-compose up -d
+
+services:
+  # ROS 2 daemon for discovery
+  ros_daemon:
+    image: osrf/ros:humble-desktop
+    container_name: ros_daemon
+    network_mode: host
+    command: >
+      bash -c "source /opt/ros/humble/setup.bash && 
+               ros2 daemon start && 
+               tail -f /dev/null"
+    restart: unless-stopped
+
+  # Turtlesim GUI node
+  turtlesim:
+    image: osrf/ros:humble-desktop
+    container_name: turtlesim
+    depends_on:
+      - ros_daemon
+    network_mode: host
+    environment:
+      - DISPLAY=host.docker.internal:0.0
+      - QT_X11_NO_MITSHM=1
+    command: >
+      bash -c "source /opt/ros/humble/setup.bash && 
+               ros2 run turtlesim turtlesim_node"
+    restart: unless-stopped
+
+  # Teleop keyboard control (requires TTY)
+  teleop:
+    image: osrf/ros:humble-desktop
+    container_name: teleop
+    depends_on:
+      - turtlesim
+    network_mode: host
+    stdin_open: true
+    tty: true
+    command: >
+      bash -c "source /opt/ros/humble/setup.bash && 
+               ros2 run turtlesim turtle_teleop_key"
+    profiles:
+      - interactive
+
+  # Sensor fusion node
+  sensor_fusion:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.gpu
+    container_name: sensor_fusion
+    network_mode: host
+    volumes:
+      - ./src:/home/dev/ros_ws/src
+    command: >
+      bash -c "source /opt/ros/humble/setup.bash && 
+               cd /home/dev/ros_ws && 
+               colcon build --packages-select sample_py_pkg 2>/dev/null || true &&
+               source install/setup.bash 2>/dev/null || true &&
+               ros2 run sample_py_pkg sensor_fusion"
+    restart: unless-stopped
+
+  # Sensor publisher (simulated sensors)
+  sensor_publisher:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.gpu
+    container_name: sensor_publisher
+    network_mode: host
+    volumes:
+      - ./src:/home/dev/ros_ws/src
+    command: >
+      bash -c "source /opt/ros/humble/setup.bash && 
+               cd /home/dev/ros_ws && 
+               colcon build --packages-select sample_py_pkg 2>/dev/null || true &&
+               source install/setup.bash 2>/dev/null || true &&
+               ros2 run sample_py_pkg sensor_publisher"
+    restart: unless-stopped
+
+  # FastAPI bridge
+  fastapi_bridge:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.gpu
+    container_name: fastapi_bridge
+    network_mode: host
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./src:/home/dev/ros_ws/src
+    command: >
+      bash -c "source /opt/ros/humble/setup.bash && 
+               cd /home/dev/ros_ws && 
+               colcon build --packages-select ros_fastapi_bridge 2>/dev/null || true &&
+               source install/setup.bash 2>/dev/null || true &&
+               ros2 run ros_fastapi_bridge bridge"
+    restart: unless-stopped
+
+  # GPU inference node (requires NVIDIA runtime)
+  gpu_inference:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.gpu
+    container_name: gpu_inference
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+    network_mode: host
+    volumes:
+      - ./src:/home/dev/ros_ws/src
+      - ./models:/home/dev/models
+    command: >
+      bash -c "source /opt/ros/humble/setup.bash && 
+               cd /home/dev/ros_ws && 
+               colcon build --packages-select sample_py_pkg 2>/dev/null || true &&
+               source install/setup.bash 2>/dev/null || true &&
+               ros2 run sample_py_pkg gpu_inference"
+    profiles:
+      - gpu
+    restart: unless-stopped
+
+  # C++ talker node
+  talker:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.gpu
+    container_name: talker
+    network_mode: host
+    volumes:
+      - ./src:/home/dev/ros_ws/src
+    command: >
+      bash -c "source /opt/ros/humble/setup.bash && 
+               cd /home/dev/ros_ws && 
+               colcon build --packages-select sample_cpp_pkg 2>/dev/null || true &&
+               source install/setup.bash 2>/dev/null || true &&
+               ros2 run sample_cpp_pkg talker"
+    profiles:
+      - demo
+    restart: unless-stopped
+
+  # C++ listener node
+  listener:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.gpu
+    container_name: listener
+    network_mode: host
+    volumes:
+      - ./src:/home/dev/ros_ws/src
+    command: >
+      bash -c "source /opt/ros/humble/setup.bash && 
+               cd /home/dev/ros_ws && 
+               colcon build --packages-select sample_cpp_pkg 2>/dev/null || true &&
+               source install/setup.bash 2>/dev/null || true &&
+               ros2 run sample_cpp_pkg listener"
+    profiles:
+      - demo
+    restart: unless-stopped
+

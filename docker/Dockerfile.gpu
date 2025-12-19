@@ -1,0 +1,74 @@
+# ROS 2 Humble GPU Development Container
+# NVIDIA CUDA base image with ROS Humble desktop
+ARG ROS_DISTRO=humble
+FROM nvidia/cuda:12.1.1-devel-ubuntu22.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV ROS_DISTRO=humble
+
+# Setup apt and ROS repo keys
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl gnupg lsb-release ca-certificates software-properties-common \
+    && rm -rf /var/lib/apt/lists/*
+
+# Add ROS 2 apt repository
+RUN curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key | gpg --dearmor -o /usr/share/keyrings/ros-archive-keyring.gpg && \
+    echo "deb [signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros2.list
+
+# Install base packages and ROS Humble desktop
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    git \
+    python3-pip \
+    python3-colcon-common-extensions \
+    python3-rosdep \
+    python3-rosinstall-generator \
+    python3-vcstool \
+    ros-${ROS_DISTRO}-desktop \
+    ros-${ROS_DISTRO}-turtlesim \
+    ros-${ROS_DISTRO}-rqt* \
+    ros-${ROS_DISTRO}-nav2-bringup \
+    ros-${ROS_DISTRO}-navigation2 \
+    ros-${ROS_DISTRO}-slam-toolbox \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Install nvidia container runtime helpers
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    nvidia-cuda-toolkit \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install useful dev tools
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    nano wget ca-certificates tmux vim \
+    x11-apps mesa-utils \
+    python3-numpy \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Python packages for FastAPI bridge
+RUN pip3 install --no-cache-dir fastapi uvicorn
+
+# Create a non-root developer user
+ARG USER=dev
+ARG UID=1000
+ARG GID=1000
+RUN groupadd -g ${GID} ${USER} && \
+    useradd -m -u ${UID} -g ${GID} -s /bin/bash ${USER} && \
+    echo "${USER} ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/${USER} && \
+    chmod 0440 /etc/sudoers.d/${USER}
+
+# Setup rosdep
+RUN rosdep init || true && \
+    su - ${USER} -c "rosdep update"
+
+WORKDIR /home/${USER}/ros_ws
+
+# Copy entrypoint and set defaults
+COPY docker/entrypoint.sh /home/${USER}/entrypoint.sh
+RUN chmod +x /home/${USER}/entrypoint.sh && \
+    chown ${USER}:${USER} /home/${USER}/entrypoint.sh
+
+ENTRYPOINT ["/home/dev/entrypoint.sh"]
+CMD ["bash"]
+
+# Note: Run container with --gpus all for CUDA support
+
